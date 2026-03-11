@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import api from "../utils/api";
 import toast from "react-hot-toast";
 import {
@@ -95,7 +95,7 @@ const DEFAULT_FOOTER: FooterConfig = {
   templates: {
     "1": { tagline: "We are a design house dedicated to the art of Indian textile. Our mission is to keep the loom alive while dressing the future." },
     "2": { tagline: "Crafting timeless Indian fashion for the modern world." },
-    "3": { tagline: "From our looms to your wardrobe â€” authentically Indian.", newsletterTitle: "Stay in the loop" },
+    "3": { tagline: "From our looms to your wardrobe -- authentically Indian.", newsletterTitle: "Stay in the loop" },
   },
 };
 
@@ -116,9 +116,9 @@ const HERO_TEMPLATE_LABELS: Record<string, { name: string; desc: string }> = {
 };
 
 const FOOTER_TEMPLATE_LABELS: Record<string, { name: string; desc: string }> = {
-  "1": { name: "Dark Professional", desc: "Dark background, multi-column grid â€” classic & sophisticated" },
-  "2": { name: "Light Editorial", desc: "Clean white background, brand-forward â€” minimal & modern" },
-  "3": { name: "Gradient with Newsletter", desc: "Indigo-to-slate gradient + email signup â€” bold & engaging" },
+  "1": { name: "Dark Professional", desc: "Dark background, multi-column grid -- classic & sophisticated" },
+  "2": { name: "Light Editorial", desc: "Clean white background, brand-forward -- minimal & modern" },
+  "3": { name: "Gradient with Newsletter", desc: "Indigo-to-slate gradient + email signup -- bold & engaging" },
 };
 
 // â”€â”€â”€ Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -134,7 +134,7 @@ export default function HomepageManager() {
   const [loading, setLoading] = useState(true);
 
   // Announcement state
-  const [announcementText, setAnnouncementText] = useState("Free shipping on orders above â‚¹999 | New arrivals every week | 100% authentic products | Secure payments");
+  const [announcementText, setAnnouncementText] = useState("Free shipping on orders above \u20B9999 | New arrivals every week | 100% authentic products | Secure payments");
   const [savingAnnouncement, setSavingAnnouncement] = useState(false);
 
   // Hero config state
@@ -541,7 +541,7 @@ export default function HomepageManager() {
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-1">Homepage Manager</h1>
       <p className="text-sm text-gray-500 mb-6">
-        Manage every section of the customer-facing homepage â€” announcement bar, hero, banners, and footer.
+        Manage every section of the customer-facing homepage -- announcement bar, hero, banners, and footer.
       </p>
 
       {/* Tabs */}
@@ -586,7 +586,7 @@ export default function HomepageManager() {
                   .filter(Boolean)
                   .map((t, i) => (
                     <span key={i} className="inline-flex items-center gap-3">
-                      <span className="text-yellow-400">âœ¦</span>
+                      <span className="text-yellow-400">✦</span>
                       {t}
                     </span>
                   ))}
@@ -604,7 +604,7 @@ export default function HomepageManager() {
                 value={announcementText}
                 onChange={(e) => setAnnouncementText(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none font-mono"
-                placeholder="100% authentic products | Free shipping on orders above â‚¹999 | New arrivals every week"
+                placeholder="100% authentic products | Free shipping on orders above &#x20B9;999 | New arrivals every week"
               />
               <p className="text-xs text-gray-400 mt-1">
                 Each entry separated by <code>|</code> becomes a separate message in the scrolling bar.
@@ -616,7 +616,7 @@ export default function HomepageManager() {
               disabled={savingAnnouncement}
               className="px-6 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50"
             >
-              {savingAnnouncement ? "Savingâ€¦" : "Save Announcement"}
+              {savingAnnouncement ? "Saving..." : "Save Announcement"}
             </button>
           </div>
         </div>
@@ -989,7 +989,7 @@ export default function HomepageManager() {
                         disabled={savingFooter}
                         className="w-full py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50"
                       >
-                        {savingFooter ? "Savingâ€¦" : "Save Template"}
+                        {savingFooter ? "Saving..." : "Save Template"}
                       </button>
                     </div>
                   )}
@@ -1038,7 +1038,7 @@ export default function HomepageManager() {
                         </div>
                         <div className="flex gap-2 pt-1">
                           <button onClick={saveHeader} disabled={savingSection} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
-                            {savingSection ? "Savingâ€¦" : "Save"}
+                            {savingSection ? "Saving..." : "Save"}
                           </button>
                           <button onClick={() => setEditingSection(null)} className="px-4 py-1.5 text-gray-600 rounded-lg text-sm hover:bg-gray-100">Cancel</button>
                         </div>
@@ -1080,7 +1080,7 @@ export default function HomepageManager() {
 
           {/* Grid */}
           {loading ? (
-            <div className="text-center py-16 text-gray-400">Loadingâ€¦</div>
+            <div className="text-center py-16 text-gray-400">Loading...</div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-16 text-gray-400">No items yet. Click "Add" to create one.</div>
           ) : (
@@ -1115,7 +1115,7 @@ export default function HomepageManager() {
                       <PencilSquareIcon className="w-3.5 h-3.5" />Edit
                     </button>
                     <button onClick={() => handleDelete(banner.id)} disabled={deletingId === banner.id} className="flex-1 py-2 text-xs text-red-500 hover:bg-red-50 font-medium flex items-center justify-center gap-1">
-                      <TrashIcon className="w-3.5 h-3.5" />{deletingId === banner.id ? "â€¦" : "Delete"}
+                      <TrashIcon className="w-3.5 h-3.5" />{deletingId === banner.id ? "..." : "Delete"}
                     </button>
                   </div>
                 </div>
@@ -1143,7 +1143,7 @@ export default function HomepageManager() {
                       <input className="mt-1 w-full border border-indigo-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={sectionForm.subtitle} onChange={(e) => setSectionForm((p) => ({ ...p, subtitle: e.target.value }))} />
                     </div>
                     <div className="flex gap-2 pt-1">
-                      <button onClick={saveHeader} disabled={savingSection} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">{savingSection ? "Savingâ€¦" : "Save"}</button>
+                      <button onClick={saveHeader} disabled={savingSection} className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">{savingSection ? "Saving..." : "Save"}</button>
                       <button onClick={() => setEditingSection(null)} className="px-4 py-1.5 text-gray-600 rounded-lg text-sm hover:bg-gray-100">Cancel</button>
                     </div>
                   </div>
@@ -1171,7 +1171,7 @@ export default function HomepageManager() {
                 type="text"
                 value={featuredSearch}
                 onChange={(e) => setFeaturedSearch(e.target.value)}
-                placeholder="Search products by nameâ€¦"
+                placeholder="Search products by name..."
                 className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400"
               />
             </div>
@@ -1184,7 +1184,7 @@ export default function HomepageManager() {
           <p className="text-xs text-gray-500">Toggle the star to add or remove a product from Featured Collections. Use the order field to control display order (lower = shown first).</p>
 
           {featuredLoading ? (
-            <div className="text-center py-16 text-gray-400">Loading productsâ€¦</div>
+            <div className="text-center py-16 text-gray-400">Loading products...</div>
           ) : featuredProducts.length === 0 ? (
             <div className="text-center py-16 text-gray-400">No products found.</div>
           ) : (
@@ -1217,8 +1217,8 @@ export default function HomepageManager() {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{product.category?.name ?? "â€”"}</td>
-                      <td className="px-4 py-3 text-right text-gray-700 font-medium">â‚¹{product.price.toLocaleString("en-IN")}</td>
+                      <td className="px-4 py-3 text-gray-500">{product.category?.name ?? "--"}</td>
+                      <td className="px-4 py-3 text-right text-gray-700 font-medium">&#x20B9;{product.price.toLocaleString("en-IN")}</td>
                       <td className="px-4 py-3 text-center">
                         <button
                           disabled={togglingId === product.id}
@@ -1235,15 +1235,15 @@ export default function HomepageManager() {
                             <div className="flex items-center justify-center gap-1">
                               <input type="number" className="w-14 border border-indigo-300 rounded px-1.5 py-1 text-xs text-center focus:outline-none focus:ring-1 focus:ring-indigo-400" value={orderInput} onChange={(e) => setOrderInput(e.target.value)} autoFocus />
                               <button onClick={() => handleSaveOrder(product)} className="text-xs text-indigo-600 hover:underline font-medium">Save</button>
-                              <button onClick={() => setOrderEditId(null)} className="text-xs text-gray-400 hover:text-gray-600">âœ•</button>
+                              <button onClick={() => setOrderEditId(null)} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
                             </div>
                           ) : (
                             <button onClick={() => { setOrderEditId(product.id); setOrderInput(String(product.featuredOrder ?? 0)); }} className="inline-flex items-center gap-1 text-xs text-gray-500 hover:text-indigo-600">
-                              <ArrowsUpDownIcon className="w-3.5 h-3.5" />{product.featuredOrder ?? "â€”"}
+                              <ArrowsUpDownIcon className="w-3.5 h-3.5" />{product.featuredOrder ?? "--"}
                             </button>
                           )
                         ) : (
-                          <span className="text-gray-300 text-xs">â€”</span>
+                          <span className="text-gray-300 text-xs">--</span>
                         )}
                       </td>
                     </tr>
@@ -1255,9 +1255,9 @@ export default function HomepageManager() {
 
           {featuredTotalPages > 1 && (
             <div className="flex justify-center items-center gap-3 pt-2">
-              <button disabled={featuredPage <= 1} onClick={() => { const p = featuredPage - 1; setFeaturedPage(p); fetchFeaturedProducts(featuredSearch, p); }} className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40">â† Prev</button>
+              <button disabled={featuredPage <= 1} onClick={() => { const p = featuredPage - 1; setFeaturedPage(p); fetchFeaturedProducts(featuredSearch, p); }} className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40">← Prev</button>
               <span className="text-sm text-gray-500">Page {featuredPage} of {featuredTotalPages}</span>
-              <button disabled={featuredPage >= featuredTotalPages} onClick={() => { const p = featuredPage + 1; setFeaturedPage(p); fetchFeaturedProducts(featuredSearch, p); }} className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next â†’</button>
+              <button disabled={featuredPage >= featuredTotalPages} onClick={() => { const p = featuredPage + 1; setFeaturedPage(p); fetchFeaturedProducts(featuredSearch, p); }} className="px-3 py-1.5 text-xs border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-40">Next →</button>
             </div>
           )}
         </div>
@@ -1336,7 +1336,7 @@ export default function HomepageManager() {
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
                 <button type="submit" disabled={saving} className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50">
-                  {saving ? "Savingâ€¦" : editBanner ? "Update" : "Create"}
+                  {saving ? "Saving..." : editBanner ? "Update" : "Create"}
                 </button>
               </div>
             </form>

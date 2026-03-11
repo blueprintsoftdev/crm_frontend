@@ -1,25 +1,25 @@
 ﻿// src/login/Login.tsx
-// Pure presentational shell  all state/logic lives in useLoginFlow.
+// Pure presentational shell — all state/logic lives in useLoginFlow.
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { ClipLoader } from "react-spinners";
 import toast, { Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import OtpInput from "react-otp-input";
 
 import logo from "../assets/logo.png";
 import { useLoginFlow, type LoginStep, type LoginFlowState } from "./useLoginFlow";
+import { useBranding } from "../context/BrandingContext";
 
-//  Brand tokens 
-const DEEP_GREEN = "#34433d";
-const ACCENT_GREEN = "#dbe7cf";
-const FOCUS_RING = "#c0ddd1";
+// ── Brand tokens ──────────────────────────────────────────────────────────────
+const DEEP_GREEN  = "#2d3d35";
+const MID_GREEN   = "#3d5247";
+const ACCENT      = "#a8c5a0";
+const LIGHT_TINT  = "#dff0d8";
 
-//  Shared atoms 
+// ── Shared atoms ──────────────────────────────────────────────────────────────
 
-/** Primary action button  disables + shows spinner while loading */
 function ActionButton({
   label,
   loading,
@@ -38,16 +38,16 @@ function ActionButton({
       type={type}
       disabled={loading || disabled}
       onClick={onClick}
-      className="w-full h-[45px] mt-2 font-semibold rounded-md shadow-md text-white
-                 transition-opacity disabled:opacity-60 cursor-pointer"
-      style={{ backgroundColor: DEEP_GREEN }}
+      className="w-full h-[48px] mt-1 font-semibold rounded-xl text-white text-sm
+                 shadow-lg shadow-[#2d3d35]/30 transition-all duration-200
+                 hover:brightness-110 active:scale-[0.98] disabled:opacity-60 cursor-pointer"
+      style={{ background: `linear-gradient(135deg, ${DEEP_GREEN} 0%, ${MID_GREEN} 100%)` }}
     >
       {loading ? <ClipLoader color="white" size={18} /> : label}
     </button>
   );
 }
 
-/** Text input with consistent focus ring */
 function TextInput({
   id,
   type = "text",
@@ -77,13 +77,14 @@ function TextInput({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       required={required}
-      className="border border-gray-300 rounded-md px-4 py-2.5 text-sm w-full
-                 focus:outline-none focus:ring-2 focus:ring-[#c0ddd1]"
+      className="border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 text-sm w-full
+                 text-gray-800 placeholder:text-gray-400
+                 focus:outline-none focus:ring-2 focus:ring-[#a8c5a0] focus:border-transparent
+                 transition-all duration-150"
     />
   );
 }
 
-/** Password input with show/hide toggle  each instance has its own local visibility state */
 function PasswordInput({
   id,
   name,
@@ -112,15 +113,17 @@ function PasswordInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required
-        className="border border-gray-300 rounded-md px-4 py-2.5 pr-10 text-sm w-full
-                   focus:outline-none focus:ring-2 focus:ring-[#c0ddd1]"
+        className="border border-gray-200 bg-gray-50 rounded-xl px-4 py-3 pr-11 text-sm w-full
+                   text-gray-800 placeholder:text-gray-400
+                   focus:outline-none focus:ring-2 focus:ring-[#a8c5a0] focus:border-transparent
+                   transition-all duration-150"
       />
       <button
         type="button"
         aria-label={visible ? "Hide password" : "Show password"}
         onClick={() => setVisible((p) => !p)}
         tabIndex={-1}
-        className="absolute inset-y-0 right-3 flex items-center text-gray-500 hover:text-gray-700"
+        className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
       >
         {visible ? <FaEyeSlash size={15} /> : <FaEye size={15} />}
       </button>
@@ -128,14 +131,7 @@ function PasswordInput({
   );
 }
 
-/** 6-input OTP widget */
-function OtpWidget({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
+function OtpWidget({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div className="flex flex-col items-center gap-3 my-2">
       <OtpInput
@@ -148,35 +144,30 @@ function OtpWidget({
             {...props}
             inputMode="numeric"
             autoComplete="one-time-code"
-            className="!w-14 !h-14 border-2 border-gray-300 rounded-xl text-center text-2xl font-bold text-gray-900 bg-white focus:outline-none focus:border-[#34433d] focus:ring-2 focus:ring-[#c0ddd1] transition-all"
+            className="!w-12 !h-13 border-2 border-gray-200 rounded-xl text-center text-xl font-bold
+                       text-gray-900 bg-white focus:outline-none focus:border-[#a8c5a0]
+                       focus:ring-2 focus:ring-[#dff0d8] transition-all"
           />
         )}
-        containerStyle={{ width: "100%", display: "flex", justifyContent: "center", gap: "10px" }}
+        containerStyle={{ width: "100%", display: "flex", justifyContent: "center", gap: "8px" }}
       />
     </div>
   );
 }
 
-/** Resend OTP control with MM:SS countdown */
 function ResendControl({
-  timer,
-  formatTimer,
-  onClick,
-  loading,
+  timer, formatTimer, onClick, loading,
 }: {
-  timer: number;
-  formatTimer: (s: number) => string;
-  onClick: () => void;
-  loading: boolean;
+  timer: number; formatTimer: (s: number) => string; onClick: () => void; loading: boolean;
 }) {
   return (
-    <p className="text-sm text-gray-600 mt-1">
+    <p className="text-sm text-gray-500 text-center mt-1">
       Didn't receive the code?{" "}
       <button
         type="button"
         onClick={onClick}
         disabled={timer > 0 || loading}
-        className="ml-1 underline font-semibold disabled:opacity-50 transition-opacity"
+        className="ml-1 font-semibold underline disabled:opacity-50 transition-opacity"
         style={{ color: DEEP_GREEN }}
       >
         {timer > 0 ? `Resend in ${formatTimer(timer)}` : "Resend OTP"}
@@ -185,33 +176,29 @@ function ResendControl({
   );
 }
 
-/** Inline back link */
 function BackButton({ label, onClick }: { label: string; onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="text-sm underline text-gray-500 hover:text-gray-700 self-center mt-1"
+      className="text-sm text-gray-400 hover:text-gray-600 self-center mt-1 transition-colors"
     >
       {label}
     </button>
   );
 }
 
-//  Step views 
+// ── Step views ────────────────────────────────────────────────────────────────
 
 function CredentialsForm({ flow }: { flow: LoginFlowState }) {
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        flow.handleLoginSubmit();
-      }}
-      className="flex flex-col gap-3 mt-6"
+      onSubmit={(e) => { e.preventDefault(); flow.handleLoginSubmit(); }}
+      className="flex flex-col gap-4 mt-6"
       noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="login-email" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Email address
         </label>
         <TextInput
@@ -226,10 +213,20 @@ function CredentialsForm({ flow }: { flow: LoginFlowState }) {
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="login-password" className="text-sm font-medium text-gray-700">
-          Password
-        </label>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex items-center justify-between">
+          <label htmlFor="login-password" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Password
+          </label>
+          <button
+            type="button"
+            className="text-xs font-semibold transition-colors hover:underline"
+            style={{ color: MID_GREEN }}
+            onClick={() => flow.setStep("forgot-email")}
+          >
+            Forgot password?
+          </button>
+        </div>
         <PasswordInput
           id="login-password"
           name="password"
@@ -240,14 +237,6 @@ function CredentialsForm({ flow }: { flow: LoginFlowState }) {
         />
       </div>
 
-      <button
-        type="button"
-        className="text-sm text-right text-blue-700 hover:underline self-end"
-        onClick={() => flow.setStep("forgot-email")}
-      >
-        Forgot password?
-      </button>
-
       <ActionButton label="Sign In" loading={flow.loading} />
     </form>
   );
@@ -257,28 +246,9 @@ function LoginOtpPanel({ flow }: { flow: LoginFlowState }) {
   return (
     <div className="flex flex-col w-full gap-4 mt-6">
       <OtpWidget value={flow.otp} onChange={flow.setOtp} />
-
-      <ActionButton
-        type="button"
-        label="Verify & Sign In"
-        loading={flow.loading}
-        onClick={flow.handleVerifyOtp}
-      />
-
-      <ResendControl
-        timer={flow.timer}
-        formatTimer={flow.formatTimer}
-        onClick={flow.handleResendOtp}
-        loading={flow.loading}
-      />
-
-      <BackButton
-        label=" Back to sign in"
-        onClick={() => {
-          flow.setStep("credentials");
-          flow.setOtp("");
-        }}
-      />
+      <ActionButton type="button" label="Verify & Sign In" loading={flow.loading} onClick={flow.handleVerifyOtp} />
+      <ResendControl timer={flow.timer} formatTimer={flow.formatTimer} onClick={flow.handleResendOtp} loading={flow.loading} />
+      <BackButton label="← Back to sign in" onClick={() => { flow.setStep("credentials"); flow.setOtp(""); }} />
     </div>
   );
 }
@@ -286,15 +256,12 @@ function LoginOtpPanel({ flow }: { flow: LoginFlowState }) {
 function ForgotEmailPanel({ flow }: { flow: LoginFlowState }) {
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        flow.handleForgotSubmit();
-      }}
-      className="flex flex-col gap-3 mt-6"
+      onSubmit={(e) => { e.preventDefault(); flow.handleForgotSubmit(); }}
+      className="flex flex-col gap-4 mt-6"
       noValidate
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="reset-email" className="text-sm font-medium text-gray-700">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="reset-email" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Registered email address
         </label>
         <TextInput
@@ -308,10 +275,8 @@ function ForgotEmailPanel({ flow }: { flow: LoginFlowState }) {
           required
         />
       </div>
-
       <ActionButton label="Send OTP" loading={flow.loading} />
-
-      <BackButton label=" Back to sign in" onClick={() => flow.setStep("credentials")} />
+      <BackButton label="← Back to sign in" onClick={() => flow.setStep("credentials")} />
     </form>
   );
 }
@@ -320,28 +285,9 @@ function ForgotOtpPanel({ flow }: { flow: LoginFlowState }) {
   return (
     <div className="flex flex-col w-full gap-4 mt-6">
       <OtpWidget value={flow.otp} onChange={flow.setOtp} />
-
-      <ActionButton
-        type="button"
-        label="Verify OTP"
-        loading={flow.loading}
-        onClick={flow.handleVerifyResetOtp}
-      />
-
-      <ResendControl
-        timer={flow.timer}
-        formatTimer={flow.formatTimer}
-        onClick={flow.handleResendResetOtp}
-        loading={flow.loading}
-      />
-
-      <BackButton
-        label=" Back"
-        onClick={() => {
-          flow.setStep("forgot-email");
-          flow.setOtp("");
-        }}
-      />
+      <ActionButton type="button" label="Verify OTP" loading={flow.loading} onClick={flow.handleVerifyResetOtp} />
+      <ResendControl timer={flow.timer} formatTimer={flow.formatTimer} onClick={flow.handleResendResetOtp} loading={flow.loading} />
+      <BackButton label="← Back" onClick={() => { flow.setStep("forgot-email"); flow.setOtp(""); }} />
     </div>
   );
 }
@@ -349,14 +295,11 @@ function ForgotOtpPanel({ flow }: { flow: LoginFlowState }) {
 function ResetPasswordPanel({ flow }: { flow: LoginFlowState }) {
   return (
     <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        flow.handleResetPassword();
-      }}
-      className="flex flex-col gap-3 mt-6"
+      onSubmit={(e) => { e.preventDefault(); flow.handleResetPassword(); }}
+      className="flex flex-col gap-4 mt-6"
     >
-      <div className="flex flex-col gap-1">
-        <label htmlFor="new-password" className="text-sm font-medium text-gray-700">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="new-password" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           New password
         </label>
         <PasswordInput
@@ -368,9 +311,8 @@ function ResetPasswordPanel({ flow }: { flow: LoginFlowState }) {
           placeholder="Minimum 8 characters"
         />
       </div>
-
-      <div className="flex flex-col gap-1">
-        <label htmlFor="confirm-password" className="text-sm font-medium text-gray-700">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="confirm-password" className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
           Confirm password
         </label>
         <PasswordInput
@@ -382,114 +324,197 @@ function ResetPasswordPanel({ flow }: { flow: LoginFlowState }) {
           placeholder="Repeat your password"
         />
       </div>
-
       <ActionButton label="Reset Password" loading={flow.loading} />
     </form>
   );
 }
 
-//  Step metadata 
+// ── Step metadata ─────────────────────────────────────────────────────────────
+
 const STEP_TITLE: Record<LoginStep, string> = {
-  credentials:    "Sign in to your account",
+  credentials:    "Welcome back",
   otp:            "Verify your identity",
-  "forgot-email": "Forgot password",
-  "forgot-otp":   "Verify your email",
+  "forgot-email": "Reset your password",
+  "forgot-otp":   "Check your inbox",
   "forgot-reset": "Set a new password",
 };
 
-function StepSubtitle({
-  step,
-  email,
-  resetEmail,
-}: {
-  step: LoginStep;
-  email: string;
-  resetEmail: string;
-}) {
+function StepSubtitle({ step, email, resetEmail }: { step: LoginStep; email: string; resetEmail: string }) {
   const map: Record<LoginStep, string> = {
-    credentials:    "Welcome back! Please enter your details.",
+    credentials:    "Sign in to continue to your dashboard",
     otp:            `We sent a 6-digit code to ${email}`,
-    "forgot-email": "We'll send a one-time code to reset your password.",
-    "forgot-otp":   `We sent a 6-digit code to ${resetEmail}`,
-    "forgot-reset": "Choose a strong password for your account.",
+    "forgot-email": "Enter your email and we'll send a reset code",
+    "forgot-otp":   `Enter the code sent to ${resetEmail}`,
+    "forgot-reset": "Choose a strong password for your account",
   };
-  return <p className="text-gray-400 text-center text-sm mt-2">{map[step]}</p>;
+  return <p className="text-sm text-gray-400 text-center mt-1">{map[step]}</p>;
 }
 
-//  Root component 
+// ── Decorative orbs for left panel ───────────────────────────────────────────
+
+function LeftPanel({ companyName, companyTagline, logoSrc }: {
+  companyName: string;
+  companyTagline: string;
+  logoSrc: string;
+}) {
+  const name = companyName || "Blueprint CRM";
+  const tagline = companyTagline || "Your ultimate sustainable fashion destination";
+
+  return (
+    <div
+      className="hidden lg:flex w-[52%] relative flex-col items-start justify-between p-12 overflow-hidden"
+      style={{ background: `linear-gradient(145deg, ${DEEP_GREEN} 0%, #1a2820 100%)` }}
+    >
+      {/* Decorative blurred circles */}
+      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full opacity-20"
+        style={{ background: `radial-gradient(circle, ${ACCENT}, transparent 70%)` }} />
+      <div className="absolute bottom-0 -left-20 w-80 h-80 rounded-full opacity-10"
+        style={{ background: `radial-gradient(circle, ${LIGHT_TINT}, transparent 70%)` }} />
+      <div className="absolute top-1/2 right-8 w-48 h-48 rounded-full opacity-10"
+        style={{ background: `radial-gradient(circle, ${ACCENT}, transparent 70%)` }} />
+
+      {/* Top: logo + name */}
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="flex items-center gap-3 z-10"
+      >
+        <div className="w-11 h-11 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center shadow-lg">
+          {logoSrc ? (
+            <img src={logoSrc} alt={name} className="w-7 h-7 object-contain" />
+          ) : (
+            <img src={logo} alt={name} className="w-7 h-7 object-contain" />
+          )}
+        </div>
+        <span className="text-white font-bold text-lg tracking-tight">{name}</span>
+      </motion.div>
+
+      {/* Middle: tagline */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.15 }}
+        className="z-10 max-w-sm"
+      >
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] mb-3" style={{ color: ACCENT }}>
+          Admin Portal
+        </p>
+        <h2 className="text-4xl font-extrabold leading-tight text-white">
+          {tagline}
+        </h2>
+        <p className="mt-4 text-sm text-white/50 leading-relaxed">
+          Manage your store, track orders, and grow your business — all from one place.
+        </p>
+      </motion.div>
+
+      {/* Bottom: feature pills */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+        className="z-10 flex flex-wrap gap-2"
+      >
+        {["Real-time analytics", "Order management", "Customer insights", "Inventory alerts"].map((f) => (
+          <span
+            key={f}
+            className="px-3 py-1.5 rounded-full text-xs font-medium text-white/80 border border-white/15 backdrop-blur-sm"
+            style={{ background: "rgba(255,255,255,0.07)" }}
+          >
+            {f}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+// ── Root component ────────────────────────────────────────────────────────────
+
 export default function Login() {
   const flow = useLoginFlow();
+  const { branding } = useBranding();
 
-  // Prevent flash of login UI if the user is already authenticated
   if (flow.isInitialLoad) return null;
+
+  const logoSrc = branding.companyLogo || "";
+  const displayLogo = logoSrc || logo;
 
   return (
     <>
-      <div className="flex min-h-screen bg-[#f9f9f9] overflow-hidden">
+      <div className="flex min-h-screen bg-[#f4f6f3] overflow-hidden">
 
-        {/*  Left decorative panel (desktop only)  */}
-        <div
-          aria-hidden="true"
-          className="hidden lg:flex w-1/2 relative items-center justify-center px-10"
-          style={{
-            backgroundColor: DEEP_GREEN,
-            clipPath: "polygon(0 0, 100% 0, 85% 100%, 0% 100%)",
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="p-8 sm:p-10 w-full max-w-md"
-          >
-            <span className="text-sm font-light" style={{ color: ACCENT_GREEN }}>
-              Step into classic style
-            </span>
-            <h2
-              className="text-4xl font-extrabold mt-2 leading-tight"
-              style={{ color: ACCENT_GREEN }}
+        {/* ── Left decorative panel ── */}
+        <LeftPanel
+          companyName={branding.companyName}
+          companyTagline={branding.companyTagline}
+          logoSrc={logoSrc}
+        />
+
+        {/* ── Right form panel ── */}
+        <main className="flex-1 flex flex-col items-center justify-center p-6 sm:p-10 relative">
+
+          {/* Subtle background tints */}
+          <div className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `radial-gradient(circle at 80% 20%, ${LIGHT_TINT}55 0%, transparent 50%),
+                                radial-gradient(circle at 10% 80%, ${ACCENT}22 0%, transparent 40%)`
+            }}
+          />
+
+          {/* Mobile logo */}
+          <div className="flex lg:hidden items-center gap-2 mb-8 z-10">
+            <img src={displayLogo} alt={branding.companyName || "Logo"} className="w-9 h-9 object-contain" />
+            {branding.companyName && (
+              <span className="font-bold text-gray-800 text-lg">{branding.companyName}</span>
+            )}
+          </div>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={flow.step}
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
+              className="relative z-10 bg-white rounded-2xl shadow-xl shadow-gray-200/80 w-full max-w-[400px] p-8 sm:p-9 border border-gray-100"
             >
-              Discover your ultimate sustainable fashion destination
-            </h2>
-          </motion.div>
-        </div>
+              {/* Logo + brand name inside card */}
+              <div className="flex flex-col items-center mb-6">
+                <div
+                  className="w-16 h-16 rounded-2xl flex items-center justify-center mb-3 shadow-md"
+                  style={{ background: `linear-gradient(135deg, ${DEEP_GREEN}18 0%, ${ACCENT}44 100%)` }}
+                >
+                  <img src={displayLogo} alt={branding.companyName || "Logo"} className="w-10 h-10 object-contain" />
+                </div>
+                {branding.companyName && (
+                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-gray-400">
+                    {branding.companyName}
+                  </span>
+                )}
+              </div>
 
-        {/*  Right form panel  */}
-        <main className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-10">
-          {/*
-            key={flow.step} causes Framer to re-animate the card on every step
-            change, giving a smooth page-turn feel for free.
-          */}
-          <motion.div
-            key={flow.step}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28 }}
-            className="bg-white p-8 sm:p-10 rounded-xl shadow-xl w-full max-w-md"
-          >
-            {/* Logo */}
-            <div className="flex justify-center mb-6">
-              <img
-                src={logo}
-                alt="blueprint_crm"
-                className="h-14 w-14 object-contain"
-                loading="eager"
-              />
-            </div>
+              {/* Title */}
+              <h1 className="text-2xl font-extrabold text-center" style={{ color: DEEP_GREEN }}>
+                {STEP_TITLE[flow.step]}
+              </h1>
+              <StepSubtitle step={flow.step} email={flow.email} resetEmail={flow.resetEmail} />
 
-            {/* Title + subtitle */}
-            <h1 className="text-2xl font-extrabold text-center" style={{ color: DEEP_GREEN }}>
-              {STEP_TITLE[flow.step]}
-            </h1>
-            <StepSubtitle step={flow.step} email={flow.email} resetEmail={flow.resetEmail} />
+              {/* Divider */}
+              <div className="mt-5 mb-1 h-px bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 
-            {/* Step views */}
-            {flow.step === "credentials"   && <CredentialsForm    flow={flow} />}
-            {flow.step === "otp"           && <LoginOtpPanel      flow={flow} />}
-            {flow.step === "forgot-email"  && <ForgotEmailPanel   flow={flow} />}
-            {flow.step === "forgot-otp"    && <ForgotOtpPanel     flow={flow} />}
-            {flow.step === "forgot-reset"  && <ResetPasswordPanel flow={flow} />}
-          </motion.div>
+              {/* Step content */}
+              {flow.step === "credentials"  && <CredentialsForm    flow={flow} />}
+              {flow.step === "otp"          && <LoginOtpPanel      flow={flow} />}
+              {flow.step === "forgot-email" && <ForgotEmailPanel   flow={flow} />}
+              {flow.step === "forgot-otp"   && <ForgotOtpPanel     flow={flow} />}
+              {flow.step === "forgot-reset" && <ResetPasswordPanel flow={flow} />}
+            </motion.div>
+          </AnimatePresence>
+
+          <p className="mt-6 text-xs text-gray-400 z-10">
+            © {new Date().getFullYear()} {branding.companyName || "Blueprint CRM"}. All rights reserved.
+          </p>
         </main>
       </div>
 
@@ -497,11 +522,7 @@ export default function Login() {
         position="top-right"
         toastOptions={{
           duration: 2500,
-          style: {
-            borderRadius: "10px",
-            fontFamily: "Inter, sans-serif",
-            fontSize: "14px",
-          },
+          style: { borderRadius: "12px", fontFamily: "Inter, sans-serif", fontSize: "13px" },
         }}
       />
     </>

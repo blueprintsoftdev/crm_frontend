@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -40,13 +40,15 @@ interface DashboardData {
 
 // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+const RUP = "\u20B9";
+
 const INR = (v: number) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(v);
+  RUP + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(v);
 
 const shortINR = (v: number) => {
-  if (v >= 1_00_000) return `â‚¹${(v / 1_00_000).toFixed(1)}L`;
-  if (v >= 1_000) return `â‚¹${(v / 1_000).toFixed(0)}K`;
-  return `â‚¹${Math.round(v)}`;
+  if (v >= 1_00_000) return `${RUP}${(v / 1_00_000).toFixed(1)}L`;
+  if (v >= 1_000) return `${RUP}${(v / 1_000).toFixed(0)}K`;
+  return `${RUP}${new Intl.NumberFormat("en-IN").format(Math.round(v))}`;
 };
 
 const fmtDate = (s: string) => {
@@ -143,7 +145,7 @@ const Home = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-gray-400">
         <div className="w-10 h-10 border-4 border-gray-200 border-t-[#5e785a] rounded-full animate-spin" />
-        <p className="text-sm">Loading dashboardâ€¦</p>
+        <p className="text-sm">Loading dashboard...</p>
       </div>
     );
   }
@@ -318,7 +320,7 @@ const Home = () => {
                   <div key={cat.id}>
                     <div className="flex justify-between text-xs mb-1">
                       <span className="font-medium text-gray-700">{cat.name}</span>
-                      <span className="text-gray-500">{shortINR(cat.revenue)} Â· {cat.unitsSold} units</span>
+                      <span className="text-gray-500">{shortINR(cat.revenue)} &middot; {cat.unitsSold} units</span>
                     </div>
                     <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                       <div
@@ -338,7 +340,7 @@ const Home = () => {
               <AlertTriangle className="h-4 w-4 text-amber-500" />
               <h2 className="font-semibold text-gray-800">Low Stock Alert</h2>
             </div>
-            <p className="text-xs text-gray-400 mb-4">Products with â‰¤ 10 units remaining</p>
+            <p className="text-xs text-gray-400 mb-4">Products with &le; 10 units remaining</p>
             {lowStockProducts.length === 0 ? (
               <div className="text-sm text-gray-400 py-8 text-center flex flex-col items-center gap-2">
                 <CheckCircle className="h-8 w-8 text-emerald-400" />
