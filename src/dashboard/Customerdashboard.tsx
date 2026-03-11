@@ -5,7 +5,8 @@ import { domainUrl } from "../utils/constant";
 import FeaturedProducts from "../components/FeaturedProducts";
 import { useAuth } from "../context/AuthContext";
 import FooterSection from "../components/FooterSection";
-import HeroCarousel from "../components/HeroCarousel";
+import HeroSection from "../components/HeroSection";
+import BannerCarousel from "../components/BannerCarousel";
 import Loader from "../components/Loader";
 import { useCart } from "../context/CartContext";
 import toast, { Toaster } from "react-hot-toast";
@@ -227,7 +228,8 @@ const Customerdashboard = () => {
 
   return (
     <div className="bg-white">
-      <HeroCarousel />
+      <HeroSection />
+      <BannerCarousel />
       <AnnouncementBar />
       <CategorySection />
       <DiscountPage />

@@ -38,6 +38,7 @@ interface CompanySettings {
   COMPANY_NAME: string;
   COMPANY_TAGLINE: string;
   COMPANY_LOGO: string;
+  COMPANY_FAVICON: string;
 }
 
 
@@ -65,11 +66,13 @@ const AdminProfile = () => {
   const [showSecurityTips, setShowSecurityTips] = useState(false);
 
   // Company branding state
-  const [company, setCompany] = useState<CompanySettings>({ COMPANY_NAME: "", COMPANY_TAGLINE: "", COMPANY_LOGO: "" });
+  const [company, setCompany] = useState<CompanySettings>({ COMPANY_NAME: "", COMPANY_TAGLINE: "", COMPANY_LOGO: "", COMPANY_FAVICON: "" });
   const [companyLoading, setCompanyLoading] = useState(true);
   const [companySaving, setCompanySaving] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [faviconFile, setFaviconFile] = useState<File | null>(null);
+  const [faviconPreview, setFaviconPreview] = useState<string | null>(null);
 
   // Avatar state
   const [avatarUploading, setAvatarUploading] = useState(false);
@@ -121,8 +124,10 @@ const AdminProfile = () => {
           COMPANY_NAME: s.COMPANY_NAME ?? "",
           COMPANY_TAGLINE: s.COMPANY_TAGLINE ?? "",
           COMPANY_LOGO: s.COMPANY_LOGO ?? "",
+          COMPANY_FAVICON: s.COMPANY_FAVICON ?? "",
         });
         if (s.COMPANY_LOGO) setLogoPreview(s.COMPANY_LOGO);
+        if (s.COMPANY_FAVICON) setFaviconPreview(s.COMPANY_FAVICON);
       })
       .catch(() => {})
       .finally(() => setCompanyLoading(false));
@@ -183,6 +188,11 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       } else if (company.COMPANY_LOGO) {
         fd.append("logoUrl", company.COMPANY_LOGO);
       }
+      if (faviconFile) {
+        fd.append("favicon", faviconFile);
+      } else if (company.COMPANY_FAVICON) {
+        fd.append("faviconUrl", company.COMPANY_FAVICON);
+      }
       const res = await api.put("/admin/company-settings", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -191,9 +201,12 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         COMPANY_NAME: s.COMPANY_NAME ?? "",
         COMPANY_TAGLINE: s.COMPANY_TAGLINE ?? "",
         COMPANY_LOGO: s.COMPANY_LOGO ?? "",
+        COMPANY_FAVICON: s.COMPANY_FAVICON ?? "",
       });
       if (s.COMPANY_LOGO) setLogoPreview(s.COMPANY_LOGO);
+      if (s.COMPANY_FAVICON) setFaviconPreview(s.COMPANY_FAVICON);
       setLogoFile(null);
+      setFaviconFile(null);
       toast.success("Company branding saved!");
       refreshBranding();
     } catch (err: any) {
@@ -218,6 +231,23 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     setLogoFile(null);
     setLogoPreview(null);
     setCompany((prev) => ({ ...prev, COMPANY_LOGO: "" }));
+  };
+
+  const handleFaviconFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file.");
+      return;
+    }
+    setFaviconFile(file);
+    setFaviconPreview(URL.createObjectURL(file));
+  };
+
+  const removeFavicon = () => {
+    setFaviconFile(null);
+    setFaviconPreview(null);
+    setCompany((prev) => ({ ...prev, COMPANY_FAVICON: "" }));
   };
 
   // ===========================
@@ -767,6 +797,61 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                           }}
                           disabled={!!logoFile}
                           placeholder="Or paste a logo URL…"
+                          className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Favicon upload */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                    Favicon <span className="font-normal normal-case text-gray-400">(browser tab icon)</span>
+                  </label>
+                  <div className="flex flex-col sm:flex-row items-start gap-4">
+                    <div className="w-16 h-16 rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden bg-gray-50 shrink-0 relative group">
+                      {faviconPreview ? (
+                        <>
+                          <img src={faviconPreview} alt="Favicon preview" className="w-full h-full object-contain p-1" />
+                          <button
+                            type="button"
+                            onClick={removeFavicon}
+                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity rounded-xl"
+                          >
+                            <Trash2 className="w-4 h-4 text-white" />
+                          </button>
+                        </>
+                      ) : (
+                        <Image className="w-6 h-6 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 space-y-3">
+                      <label className="flex items-center gap-2 px-4 py-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors w-full sm:w-auto">
+                        <Upload className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-700">
+                          {faviconFile ? faviconFile.name : "Upload favicon image"}
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleFaviconFileChange}
+                        />
+                      </label>
+                      <p className="text-xs text-gray-400">PNG, ICO, SVG or WEBP — recommended 32×32 or 64×64 px.</p>
+                      <div className="relative">
+                        <Image className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <input
+                          type="url"
+                          value={faviconFile ? "" : company.COMPANY_FAVICON}
+                          onChange={(e) => {
+                            setCompany((prev) => ({ ...prev, COMPANY_FAVICON: e.target.value }));
+                            setFaviconPreview(e.target.value || null);
+                            setFaviconFile(null);
+                          }}
+                          disabled={!!faviconFile}
+                          placeholder="Or paste a favicon URL…"
                           className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 disabled:opacity-40 disabled:cursor-not-allowed"
                         />
                       </div>

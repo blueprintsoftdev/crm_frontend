@@ -9,6 +9,7 @@ interface BrandingData {
   companyName: string;
   companyTagline: string;
   companyLogo: string;
+  companyFavicon: string;
 }
 
 interface BrandingContextValue {
@@ -40,7 +41,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   // Initialise immediately from cache so the navbar never flickers on reload
   const cached = readBrandingCache();
   const [branding, setBranding] = useState<BrandingData>(
-    cached ?? { companyName: "", companyTagline: "", companyLogo: "" }
+    cached ?? { companyName: "", companyTagline: "", companyLogo: "", companyFavicon: "" }
   );
   // If we already have cached data, consider it "loaded" right away
   const [loading, setLoading] = useState(!cached);
@@ -53,6 +54,7 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
         companyName: s.COMPANY_NAME ?? "",
         companyTagline: s.COMPANY_TAGLINE ?? "",
         companyLogo: s.COMPANY_LOGO ?? "",
+        companyFavicon: s.COMPANY_FAVICON ?? "",
       };
       setBranding(fresh);
       try { localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(fresh)); } catch { /* quota exceeded — ignore */ }
@@ -66,6 +68,22 @@ export const BrandingProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Sync browser tab title and favicon whenever branding changes
+  useEffect(() => {
+    if (branding.companyName) {
+      document.title = branding.companyName;
+    }
+    if (branding.companyFavicon) {
+      let link = document.querySelector<HTMLLinkElement>("link[rel='icon'], link[rel='shortcut icon']");
+      if (!link) {
+        link = document.createElement("link");
+        link.rel = "icon";
+        document.head.appendChild(link);
+      }
+      link.href = branding.companyFavicon;
+    }
+  }, [branding.companyName, branding.companyFavicon]);
 
   return (
     <BrandingContext.Provider value={{ branding, loading, refresh }}>

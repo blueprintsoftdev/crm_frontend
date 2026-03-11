@@ -4,7 +4,6 @@ import api from "../utils/api";
 const DEFAULT_ITEMS = [
   "Free shipping on orders above ₹999",
   "New arrivals every week",
-  "Easy returns within 7 days",
   "100% authentic products",
   "Secure payments",
 ];
