@@ -47,11 +47,18 @@ interface Suggestion {
 }
 
 const CheckoutPage = () => {
-  const { cartItems, cartTotal, clearCart } = useCart();
+  const { cartItems, cartTotal, clearCart, fetchCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
-  const prefill = (location.state as { addressPrefill?: { fullAddress: string; city: string; state: string; zipCode: string; lat: number | null; lng: number | null }; shippingCharge?: number } | null);
+  const prefill = (location.state as { addressPrefill?: { fullAddress: string; city: string; state: string; zipCode: string; lat: number | null; lng: number | null }; shippingCharge?: number; buyNowProductId?: string } | null);
+  const buyNowProductId = prefill?.buyNowProductId ?? null;
   const isPaymentSuccess = useRef(false);
+
+  // For Buy Now: only process the specific product, not the entire cart
+  const checkoutItems = buyNowProductId
+    ? cartItems.filter((i) => i.productId === buyNowProductId)
+    : cartItems;
+  const checkoutSubtotal = checkoutItems.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
   // --- NEW STATE FOR BLUR EFFECT ---
   const [isRazorpayOpen, setIsRazorpayOpen] = useState(false);
@@ -217,6 +224,7 @@ const CheckoutPage = () => {
 
       const res = await api.post("/order/place", {
         couponId: appliedCoupon?.couponId,
+        ...(buyNowProductId ? { buyNowProductId } : {}),
       });
 
       if (!res.data || !res.data.rzpOrder) {
@@ -237,14 +245,21 @@ const CheckoutPage = () => {
           toast.success("Payment Successful! Processing...");
 
           try {
-            await api.post("/order/verifyPayment", response);
+            await api.post("/order/verifyPayment", {
+              ...response,
+              ...(buyNowProductId ? { buyNowProductId } : {}),
+            });
           } catch (err) {
       const _e = err as any;
             console.error("Verification API Error:", err);
             toast.success("Order Placed! Check 'My Orders' for status.");
           }
 
-          if (clearCart) clearCart();
+          if (buyNowProductId) {
+            if (fetchCart) await fetchCart();
+          } else {
+            if (clearCart) clearCart();
+          }
 
           setAddress({
             house: "",
@@ -405,10 +420,15 @@ const CheckoutPage = () => {
         await new Promise((resolve) => setTimeout(resolve, 3000));
         await api.post("/order/placeOrderPOD", {
           couponId: appliedCoupon?.couponId,
+          ...(buyNowProductId ? { buyNowProductId } : {}),
         });
 
         isPaymentSuccess.current = true;
-        if (clearCart) clearCart();
+        if (buyNowProductId) {
+          if (fetchCart) await fetchCart();
+        } else {
+          if (clearCart) clearCart();
+        }
         toast.dismiss(toastId);
         toast.success("Order placed successfully!");
         setShowSuccessModal(true);
@@ -424,10 +444,10 @@ const CheckoutPage = () => {
   };
 
   const discountAmount = appliedCoupon?.discountAmount ?? 0;
-  const totalAmount = Math.max((Number(cartTotal) + Number(shippingCharge) - discountAmount), 0).toFixed(2);
+  const totalAmount = Math.max((checkoutSubtotal + Number(shippingCharge) - discountAmount), 0).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pt-24 pb-12 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pt-24 pb-44 lg:pb-12 relative overflow-x-hidden">
       {/* MAIN WRAPPER DIV 
           Added conditional logic: transition-all duration-500
           When isRazorpayOpen is true: blur-md, scale-95, pointer-events-none
@@ -571,7 +591,7 @@ const CheckoutPage = () => {
                       onChange={(e) =>
                         setAddress({ ...address, pincode: e.target.value })
                       }
-                      className="block w-1/2 rounded-xl border-gray-200 px-4 py-3 shadow-sm focus:border-black focus:ring-black sm:text-sm bg-gray-50"
+                      className="block w-full sm:w-1/2 rounded-xl border-gray-200 px-4 py-3 shadow-sm focus:border-black focus:ring-black sm:text-sm bg-gray-50"
                     />
                   </div>
                 </div>
@@ -685,15 +705,15 @@ const CheckoutPage = () => {
             </form>
           </div>
 
-          {/* ================= RIGHT SIDE: SUMMARY ================= */}
-          <div className="lg:col-span-5">
+          {/* ================= RIGHT SIDE: SUMMARY (desktop only) ================= */}
+          <div className="hidden lg:block lg:col-span-5">
             <div className="bg-white rounded-[2rem] shadow-sm border border-gray-100 p-6 lg:sticky lg:top-24">
               <h2 className="text-lg font-bold uppercase tracking-wider text-gray-900 mb-6 flex items-center gap-2">
                 <Package className="h-5 w-5" /> Order Summary
               </h2>
 
               <ul className="divide-y divide-gray-100 mb-6 max-h-[400px] overflow-y-auto custom-scrollbar">
-                {cartItems.map((item) => (
+                {checkoutItems.map((item) => (
                   <li key={item._id} className="flex py-4">
                     <div className="h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
                       <img
@@ -720,7 +740,7 @@ const CheckoutPage = () => {
               <div className="space-y-3 pt-6 border-t border-gray-100 text-sm">
                 <div className="flex justify-between text-gray-500">
                   <span>Subtotal</span>
-                  <span>₹{cartTotal}</span>
+                  <span>₹{checkoutSubtotal}</span>
                 </div>
                 <div className="flex justify-between text-gray-500">
                   <span className="flex items-center gap-1">
@@ -843,12 +863,12 @@ const CheckoutPage = () => {
                 leaveFrom="opacity-100 translate-y-0"
                 leaveTo="opacity-0 translate-y-10"
               >
-                <Popover.Panel className="absolute bottom-full left-0 right-0 mb-0 w-full bg-white border-t border-gray-200 px-6 py-6 shadow-2xl max-h-[60vh] overflow-y-auto rounded-t-3xl">
+                <Popover.Panel className="absolute bottom-full left-0 right-0 mb-0 w-full bg-white border-t border-gray-200 px-6 py-6 shadow-2xl max-h-[70vh] overflow-y-auto rounded-t-3xl">
                   <h3 className="text-sm font-bold uppercase text-gray-900 mb-4">
                     Order Summary
                   </h3>
-                  <ul className="divide-y divide-gray-100">
-                    {cartItems.map((item) => (
+                  <ul className="divide-y divide-gray-100 mb-4">
+                    {checkoutItems.map((item) => (
                       <li key={item._id} className="flex py-3">
                         <img
                           src={item.image}
@@ -868,6 +888,27 @@ const CheckoutPage = () => {
                       </li>
                     ))}
                   </ul>
+                  {/* Price breakdown */}
+                  <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
+                    <div className="flex justify-between text-gray-500">
+                      <span>Subtotal</span>
+                      <span>₹{checkoutSubtotal}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-500">
+                      <span className="flex items-center gap-1">Shipping <TruckIcon className="h-3 w-3" /></span>
+                      <span>{shippingCharge === 0 ? <span className="text-green-600 font-medium">Free</span> : `₹${shippingCharge}`}</span>
+                    </div>
+                    {discountAmount > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Discount {appliedCoupon?.code && <span className="text-[10px] bg-green-100 rounded px-1">{appliedCoupon.code}</span>}</span>
+                        <span className="font-medium">−₹{discountAmount}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between border-t border-gray-100 pt-3">
+                      <span className="font-bold text-gray-900">Total</span>
+                      <span className="text-base font-bold text-indigo-600">₹{totalAmount}</span>
+                    </div>
+                  </div>
                 </Popover.Panel>
               </Transition>
             </>

@@ -114,7 +114,7 @@ export default function StaffManagement() {
 
   // Edit modal
   const [editingStaff, setEditingStaff] = useState<StaffMember | null>(null);
-  const [editBasicForm, setEditBasicForm] = useState({ username: "", email: "", phone: "", notes: "" });
+  const [editBasicForm, setEditBasicForm] = useState({ username: "", email: "", phone: "", notes: "", newPassword: "" });
   const [editPermsForEdit, setEditPermsForEdit] = useState<StaffPermission[]>([]);
   const [savingEdit, setSavingEdit] = useState(false);
 
@@ -214,6 +214,7 @@ export default function StaffManagement() {
       email: s.user.email,
       phone: s.user.phone,
       notes: s.notes ?? "",
+      newPassword: "",
     });
     setEditPermsForEdit(s.permissions);
   };
@@ -242,7 +243,13 @@ export default function StaffManagement() {
     setSavingEdit(true);
     try {
       // Always update basic details
-      const basicRes = await api.patch(`/staff/${editingStaff.id}`, { ...editBasicForm, username, email, phone });
+      const basicRes = await api.patch(`/staff/${editingStaff.id}`, {
+        ...editBasicForm,
+        username,
+        email,
+        phone,
+        ...(editBasicForm.newPassword.trim() ? { newPassword: editBasicForm.newPassword } : {}),
+      });
 
       // Update permissions only when customization is enabled
       if (permEnabled) {
@@ -617,6 +624,21 @@ export default function StaffManagement() {
                   placeholder="Optional internal note"
                   value={editBasicForm.notes}
                   onChange={(e) => setEditBasicForm({ ...editBasicForm, notes: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-600 mb-1">
+                  New Password
+                  <span className="ml-1 font-normal text-gray-400">(leave blank to keep unchanged)</span>
+                </label>
+                <input
+                  type="password"
+                  minLength={6}
+                  placeholder="Min. 6 characters"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  value={editBasicForm.newPassword}
+                  onChange={(e) => setEditBasicForm({ ...editBasicForm, newPassword: e.target.value })}
                 />
               </div>
 

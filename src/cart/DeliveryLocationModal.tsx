@@ -229,7 +229,7 @@ export default function DeliveryLocationModal({ isOpen, onClose, product }: Deli
 
       onClose();
       navigate("/checkout", {
-        state: { addressPrefill, shippingCharge: preview.shippingCharge },
+        state: { addressPrefill, shippingCharge: preview.shippingCharge, buyNowProductId: product.id },
       });
     } catch {
       toast.error("Something went wrong. Please try again.");

@@ -40,22 +40,26 @@ interface Order {
 }
 
 // --- HELPER: Status Badge (Themed) ---
-const getStatusBadge = (status: string) => {
+const getStatusBadge = (rawStatus: string) => {
+  // Normalise to title-case so "SHIPPED" and "Shipped" both match
+  const status = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+
   const styles: Record<string, string> = {
-    Processing:
-      "bg-yellow-50 text-yellow-700 border-yellow-200 ring-yellow-600/10",
-    Shipped: "bg-blue-50 text-blue-700 border-blue-200 ring-blue-600/10",
-    Delivered: "bg-green-50 text-green-700 border-green-200 ring-green-600/20",
-    Cancelled: "bg-red-50 text-red-700 border-red-200 ring-red-600/10",
-    default: "bg-gray-50 text-gray-600 border-gray-200 ring-gray-500/10",
+    Processing: "bg-amber-400 text-white border-amber-500",
+    Confirmed:  "bg-blue-400 text-white border-blue-500",
+    Shipped:    "bg-sky-500 text-white border-sky-600",
+    Delivered:  "bg-emerald-500 text-white border-emerald-600",
+    Cancelled:  "bg-red-500 text-white border-red-600",
+    default:    "bg-gray-400 text-white border-gray-500",
   };
 
   const icons: Record<string, React.ReactElement> = {
-    Processing: <Clock className="w-3.5 h-3.5 " />,
-    Shipped: <Truck className="w-3.5 h-3.5" />,
-    Delivered: <CheckCircle className="w-3.5 h-3.5" />,
-    Cancelled: <XCircle className="w-3.5 h-3.5" />,
-    default: <Package className="w-3.5 h-3.5" />,
+    Processing: <Clock className="w-3.5 h-3.5" />,
+    Confirmed:  <Clock className="w-3.5 h-3.5" />,
+    Shipped:    <Truck className="w-3.5 h-3.5" />,
+    Delivered:  <CheckCircle className="w-3.5 h-3.5" />,
+    Cancelled:  <XCircle className="w-3.5 h-3.5" />,
+    default:    <Package className="w-3.5 h-3.5" />,
   };
 
   const styleClass = styles[status] ?? styles.default;
@@ -63,7 +67,7 @@ const getStatusBadge = (status: string) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border ring-1 ring-inset ${styleClass}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border shadow-sm ${styleClass}`}
     >
       {Icon} {status}
     </span>

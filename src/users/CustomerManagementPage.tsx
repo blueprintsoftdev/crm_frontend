@@ -29,14 +29,6 @@ export default function CustomerManagementPage() {
               View, search, edit, and manage all customer accounts.
             </p>
           </div>
-
-          <Link
-            to={`${dashPrefix}/manage-user/add-user`}
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-colors"
-          >
-            <PlusIcon className="h-4 w-4" />
-            Add User
-          </Link>
         </div>
       </div>
 

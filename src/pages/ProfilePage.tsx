@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface Profile {
   username: string;
   email: string;
+  phone?: string;
   role?: string;
 }
 
@@ -32,7 +33,8 @@ const ProfilePage = () => {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [formData, setFormData] = useState({ newUsername: "", newEmail: "" });
+  const [formData, setFormData] = useState({ newUsername: "", newEmail: "", newPhone: "" });
+  const [isEditing, setIsEditing] = useState(false);
 
   // OTP States
   const [requestingOtp, setRequestingOtp] = useState(false);
@@ -53,6 +55,7 @@ const ProfilePage = () => {
         setFormData({
           newUsername: data.username || "",
           newEmail: data.email || "",
+          newPhone: data.phone || "",
         });
       } catch (err) {
         const e = err as any;
@@ -76,14 +79,15 @@ const ProfilePage = () => {
 
   const handleRequestUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { newUsername, newEmail } = formData;
+    const { newUsername, newEmail, newPhone } = formData;
 
     if (!newUsername.trim() || !newEmail.trim())
       return void toast("Fill all fields.");
     if (
       profile &&
       newUsername === profile.username &&
-      newEmail === profile.email
+      newEmail === profile.email &&
+      (newPhone || "") === (profile.phone || "")
     )
       return void toast("No changes detected.");
 
@@ -92,6 +96,7 @@ const ProfilePage = () => {
       const res = await api.post("/user/profile/request-update", {
         newEmail,
         newUsername,
+        newPhone: newPhone.trim() || undefined,
       });
       toast.success(res.data?.message || `OTP sent to ${newEmail}`);
       setOtpRequested(true);
@@ -119,11 +124,13 @@ const ProfilePage = () => {
         setFormData({
           newUsername: res.data.user.username,
           newEmail: res.data.user.email,
+          newPhone: res.data.user.phone || "",
         });
       }
       if (checkAuthStatus) checkAuthStatus();
       setOtp("");
       setOtpRequested(false);
+      setIsEditing(false);
     } catch (err) {
       const e = err as any;
       toast.error(e.response?.data?.message || "Invalid OTP.");
@@ -205,11 +212,16 @@ const ProfilePage = () => {
                 <h2 className="text-2xl font-bold text-gray-900">
                   {profile.username}
                 </h2>
-                <p className="text-gray-500 text-sm font-medium mb-6">
+                <p className="text-gray-500 text-sm font-medium">
                   {profile.email}
                 </p>
+                {profile.phone && (
+                  <p className="text-gray-400 text-sm font-medium mt-1">
+                    📞 {profile.phone}
+                  </p>
+                )}
 
-                <div className="flex justify-center gap-2">
+                <div className="flex justify-center gap-2 mt-6">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20">
                     {profile.role || "Member"}
                   </span>
@@ -275,21 +287,74 @@ const ProfilePage = () => {
           {/* ================= RIGHT: EDIT FORM ================= */}
           <div className="lg:col-span-8">
             <div className="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-sm border border-gray-100 h-full">
-              <div className="flex items-center gap-3 mb-8 border-b border-gray-100 pb-6">
-                <div className="p-3 bg-indigo-50 rounded-full text-indigo-600">
-                  <Edit2 className="w-6 h-6" />
+              <div className="flex items-center justify-between mb-8 border-b border-gray-100 pb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-3 bg-indigo-50 rounded-full text-indigo-600">
+                    <Edit2 className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
+                      {isEditing ? "Edit Details" : "My Details"}
+                    </h2>
+                    <p className="text-sm text-gray-500">
+                      {isEditing ? "Update your personal information" : "Your account information"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
-                    Edit Details
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    Update your personal information
-                  </p>
-                </div>
+                {!otpRequested && (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditing((v) => !v)}
+                    className={`p-2.5 rounded-full border transition-all ${
+                      isEditing
+                        ? "bg-gray-900 text-white border-gray-900"
+                        : "bg-white text-gray-500 border-gray-200 hover:border-black hover:text-black"
+                    }`}
+                    title={isEditing ? "Cancel editing" : "Edit profile"}
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
 
               {!otpRequested ? (
+                !isEditing ? (
+                  /* ── Read-only view ── */
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Display Name</p>
+                        <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-gray-50 border border-transparent">
+                          <User className="h-5 w-5 text-gray-400" />
+                          <span className="font-semibold text-gray-900">{profile.username}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Email Address</p>
+                        <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-gray-50 border border-transparent">
+                          <Mail className="h-5 w-5 text-gray-400" />
+                          <span className="font-semibold text-gray-900">{profile.email}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-1 md:col-span-2">
+                        <p className="text-xs font-bold uppercase tracking-wide text-gray-400">Phone Number</p>
+                        <div className="flex items-center gap-3 py-3 px-4 rounded-xl bg-gray-50 border border-transparent">
+                          <span className="text-gray-400 text-lg leading-none">📞</span>
+                          <span className="font-semibold text-gray-900">{profile.phone || <span className="text-gray-400 font-normal">Not provided</span>}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="pt-2 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setIsEditing(true)}
+                        className="inline-flex items-center gap-2 px-6 py-3 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-900 transition-all shadow-md hover:shadow-lg"
+                      >
+                        <Edit2 className="w-4 h-4" /> Edit Profile
+                      </button>
+                    </div>
+                  </div>
+                ) : (
                 <form onSubmit={handleRequestUpdate} className="space-y-8">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                     {/* Username Input */}
@@ -327,18 +392,46 @@ const ProfilePage = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Phone Input */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-xs font-bold uppercase tracking-wide text-gray-500 ml-1">
+                        Phone Number
+                      </label>
+                      <div className="relative group">
+                        <span className="absolute left-4 top-3.5 text-gray-400 text-base leading-none">📞</span>
+                        <input
+                          name="newPhone"
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={10}
+                          value={formData.newPhone}
+                          onChange={handleChange}
+                          className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 border-2 border-transparent text-gray-900 placeholder-gray-400 focus:bg-white focus:border-black focus:ring-0 transition-all font-medium"
+                          placeholder="10-digit mobile number"
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="pt-4 flex justify-end">
+                  <div className="pt-4 flex justify-end gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setIsEditing(false); setFormData({ newUsername: profile.username, newEmail: profile.email, newPhone: profile.phone || "" }); }}
+                      className="px-6 py-3 border border-gray-200 rounded-full text-sm font-bold uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all"
+                    >
+                      Cancel
+                    </button>
                     <button
                       type="submit"
                       disabled={requestingOtp}
-                      className="w-full md:w-auto px-8 py-4 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-900 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
+                      className="px-8 py-4 bg-black text-white rounded-full text-sm font-bold uppercase tracking-widest hover:bg-gray-900 disabled:opacity-70 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl hover:-translate-y-1"
                     >
                       {requestingOtp ? "Sending OTP..." : "Save Changes"}
                     </button>
                   </div>
                 </form>
+                )
               ) : (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-md mx-auto py-10 text-center">
                   <div className="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6 text-indigo-600">

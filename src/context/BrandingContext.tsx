@@ -19,6 +19,17 @@ interface BrandingContextValue {
 
 const BrandingContext = createContext<BrandingContextValue | undefined>(undefined);
 
+const BRANDING_CACHE_KEY = "crm_branding_cache";
+
+function readBrandingCache(): BrandingData | null {
+  try {
+    const raw = localStorage.getItem(BRANDING_CACHE_KEY);
+    return raw ? (JSON.parse(raw) as BrandingData) : null;
+  } catch {
+    return null;
+  }
+}
+
 export const useBranding = (): BrandingContextValue => {
   const ctx = useContext(BrandingContext);
   if (!ctx) throw new Error("useBranding must be used inside <BrandingProvider>");
@@ -26,24 +37,27 @@ export const useBranding = (): BrandingContextValue => {
 };
 
 export const BrandingProvider = ({ children }: { children: ReactNode }) => {
-  const [branding, setBranding] = useState<BrandingData>({
-    companyName: "",
-    companyTagline: "",
-    companyLogo: "",
-  });
-  const [loading, setLoading] = useState(true);
+  // Initialise immediately from cache so the navbar never flickers on reload
+  const cached = readBrandingCache();
+  const [branding, setBranding] = useState<BrandingData>(
+    cached ?? { companyName: "", companyTagline: "", companyLogo: "" }
+  );
+  // If we already have cached data, consider it "loaded" right away
+  const [loading, setLoading] = useState(!cached);
 
   const refresh = useCallback(async () => {
     try {
       const res = await api.get("/admin/company-settings");
       const s = res.data.settings ?? {};
-      setBranding({
+      const fresh: BrandingData = {
         companyName: s.COMPANY_NAME ?? "",
         companyTagline: s.COMPANY_TAGLINE ?? "",
         companyLogo: s.COMPANY_LOGO ?? "",
-      });
+      };
+      setBranding(fresh);
+      try { localStorage.setItem(BRANDING_CACHE_KEY, JSON.stringify(fresh)); } catch { /* quota exceeded — ignore */ }
     } catch {
-      // Keep defaults on error — non-critical
+      // Keep cached / default values on error — non-critical
     } finally {
       setLoading(false);
     }
