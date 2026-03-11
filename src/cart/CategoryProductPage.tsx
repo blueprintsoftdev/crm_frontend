@@ -447,21 +447,6 @@ const CategoryProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900">
-      {/* <Navbar
-        isAuthenticated={user?.isAuthenticated}
-        role={user?.role}
-        cartItemCount={cartItems?.length || 0}
-        handleLogout={logout}
-        handleUserIconClick={() => navigate("/profile")}
-        handleGatedNavigation={(e, path, isProtected) => {
-          if (isProtected && !user?.isAuthenticated) {
-            e.preventDefault();
-            navigate("/login");
-          } else {
-            navigate(path);
-          }
-        }}
-      /> */}
 
       {/* ANIMATED HEADER */}
       <div className="pt-32 pb-12 bg-white">

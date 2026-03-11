@@ -63,7 +63,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const logout = async (redirectTo: string = "/login") => {
+  const logout = async (redirectTo?: string) => {
+    // Admins and staff go to /login; customers go to the landing page
+    const isPrivilegedRole = user.role === "ADMIN" || user.role === "SUPER_ADMIN" || user.role === "STAFF";
+    const destination = redirectTo ?? (isPrivilegedRole ? "/login" : "/");
+
     try {
       await api.post("/auth/logout", {}, { withCredentials: true });
     } catch {
@@ -77,7 +81,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.clear();
 
     setUser({ role: null, isAuthenticated: false, isInitialLoad: false });
-    window.location.href = redirectTo;
+    window.location.href = destination;
   };
 
   // Re-check auth when the tab becomes visible again (user returns from idle / screen wake).

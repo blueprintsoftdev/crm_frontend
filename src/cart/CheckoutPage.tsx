@@ -168,7 +168,7 @@ const CheckoutPage = () => {
     try {
       const res = await api.post("/coupon/validate", {
         code: couponCode.trim(),
-        orderAmount: Number(cartTotal),
+        orderAmount: Number(checkoutSubtotal),
       });
       setAppliedCoupon(res.data);
       toast.success(`Coupon "${res.data.code}" applied! You save ₹${res.data.discountAmount}`);
@@ -898,6 +898,50 @@ const CheckoutPage = () => {
                       <span className="flex items-center gap-1">Shipping <TruckIcon className="h-3 w-3" /></span>
                       <span>{shippingCharge === 0 ? <span className="text-green-600 font-medium">Free</span> : `₹${shippingCharge}`}</span>
                     </div>
+
+                    {/* Coupon Input — mobile */}
+                    <div className="pt-1">
+                      {!appliedCoupon ? (
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <TagIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <input
+                              type="text"
+                              value={couponCode}
+                              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                              onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                              placeholder="Coupon code"
+                              className="w-full pl-9 pr-3 py-2 rounded-xl border border-gray-200 text-sm bg-gray-50 focus:outline-none focus:border-black transition"
+                            />
+                          </div>
+                          <button
+                            onClick={handleApplyCoupon}
+                            disabled={couponLoading || !couponCode.trim()}
+                            className="px-4 py-2 rounded-xl bg-black text-white text-xs font-bold uppercase tracking-wider disabled:opacity-50 hover:bg-gray-800 transition"
+                          >
+                            {couponLoading ? "..." : "Apply"}
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                          <div className="flex items-center gap-2">
+                            <TagIcon className="h-4 w-4 text-green-600" />
+                            <div>
+                              <p className="text-xs font-bold text-green-700">{appliedCoupon.code}</p>
+                              <p className="text-xs text-green-600">
+                                {appliedCoupon.discountType === "PERCENTAGE"
+                                  ? `${appliedCoupon.discountValue}% off`
+                                  : `₹${appliedCoupon.discountValue} off`}
+                              </p>
+                            </div>
+                          </div>
+                          <button onClick={handleRemoveCoupon} className="text-gray-400 hover:text-red-500 transition">
+                            <XCircleIcon className="h-5 w-5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     {discountAmount > 0 && (
                       <div className="flex justify-between text-green-600">
                         <span>Discount {appliedCoupon?.code && <span className="text-[10px] bg-green-100 rounded px-1">{appliedCoupon.code}</span>}</span>

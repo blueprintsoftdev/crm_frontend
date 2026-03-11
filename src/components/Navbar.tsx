@@ -193,15 +193,6 @@ const Navbar = ({ user, role, cartItemCount = 0, handleLogout }: { user?: { isAu
     }
   };
 
-  // const handleGatedNavigation = (e: React.MouseEvent, path: string, isProtected: boolean) => {
-  //   e.preventDefault();
-  //   if (isProtected && !isAuthenticated) {
-  //     navigate("/login");
-  //   } else {
-  //     navigate(path);
-  //   }
-  // };
-
 
   const handleGatedNavigation = (e: React.MouseEvent, path: string, isProtected: boolean) => {
   e.preventDefault();

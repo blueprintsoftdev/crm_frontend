@@ -220,40 +220,7 @@ export default function AllProducts() {
   const isAuthenticated = user?.isAuthenticated;
   const role = user?.role;
 
-  const handleLogout = async () => {
-    try {
-      await api.post("/auth/logout");
-      await logout();
-      localStorage.removeItem("role");
-      navigate("/login", { replace: true });
-    } catch (err) {
-      const _e = err as any;
-      console.error("Logout failed", err);
-    }
-  };
 
-  const handleGatedNavigation = (e: React.MouseEvent, path: string, isProtected: boolean) => {
-    if (isProtected && !isAuthenticated) {
-      e.preventDefault();
-      navigate("/login");
-    } else if (isProtected && role?.toLowerCase() === "super_admin") {
-      e.preventDefault();
-      navigate("/super-admin-dashboard");
-    } else if (isProtected && role?.toLowerCase() === "admin") {
-      e.preventDefault();
-      navigate("/admin-dashboard");
-    } else {
-      navigate(path);
-    }
-  };
-
-  const handleUserIconClick = () => {
-    if (!isAuthenticated || role !== "user") {
-      navigate("/login");
-    } else {
-      navigate("/profile");
-    }
-  };
 
   // Filters state
   const [filters, setFilters] = useState<Filters>(() => {

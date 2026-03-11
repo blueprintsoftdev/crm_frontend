@@ -66,7 +66,6 @@ import OrderSuccess from "./pages/OrderSuccess";
 import InvoicePage from "./pages/InvoicePage";
 import TransactionHistory from "./pages/TransactionHistory";
 import DiscountPage from "./components/DiscountPage";
-import AnnouncementBar from "./components/AnnouncementBar";
 
 /* ==================== MISC ==================== */
 import Home from "./home/Home";
@@ -116,9 +115,6 @@ const CustomerLayout = () => {
 /* ======================================================= */
 
 const AppRoutes = () => {
-  const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith("/admin-dashboard");
-  const isAuthRoute = ["/login", "/signup"].includes(location.pathname);
 
   return (
     <Routes>
@@ -349,7 +345,6 @@ const AppRoutes = () => {
       <Route element={<CustomerLayout />}>
         <Route path="/" element={<Customerdashboard />} />
         <Route path="/discounts" element={<DiscountPage />} />
-        <Route path="/announcementbar" element={<AnnouncementBar />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/categories/:slug" element={<CategoryProductPage />} />
         <Route path="/products/:productId" element={<ProductDetailPage />} />
